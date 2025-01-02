@@ -1,6 +1,9 @@
 import pytest
 import json
+
 from app import app
+
+
 
 @pytest.fixture
 def client():
@@ -30,13 +33,15 @@ def test_add_text_no_text(client):
     assert response_data["error"] == "No text provided"
 
 def test_find_similar(client):
-    # Add a text first
-    client.post('/add_text',
-                data=json.dumps({"text": "Test text"}),
-                content_type='application/json')
+    # Add enough texts to train the FAISS index
+    for i in range(100):
+        client.post('/add_text',
+                    data=json.dumps({"text": f"Test text {i}"}),
+                    content_type='application/json')
 
+    # Perform the similarity search
     response = client.post('/find_similar',
-                           data=json.dumps({"text": "Test text", "n": 1}),
+                           data=json.dumps({"text": "Test text 1", "n": 1}),
                            content_type='application/json')
     assert response.status_code == 200
     response_data = response.get_json()
